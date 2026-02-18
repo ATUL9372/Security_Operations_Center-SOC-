@@ -1,1 +1,0 @@
-# Security_Operations_Center-SOC-
