@@ -1,0 +1,160 @@
+---
+
+- name: ELK 9.3.2 (http) with .deb file on ubuntu server 
+  hosts: all
+  become: yes
+
+  vars_files:
+    - secrets.yml
+
+  vars:
+
+    elasticsearch: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.3.2-amd64.deb
+    logstash: https://artifacts.elastic.co/downloads/logstash/logstash-9.3.2-amd64.deb
+    kibana: https://artifacts.elastic.co/downloads/kibana/kibana-9.3.2-amd64.deb
+
+
+  tasks:
+
+    - name: Ping server
+      ansible.builtin.ping:
+        
+    - name: Upadate system using apt
+      ansible.builtin.apt:
+        update_cache: yes
+
+# Install java openjdk-21-jre-headless
+
+    - name: Install java openJDK- 21
+      ansible.builtin.apt:
+        name:
+          - openjdk-21-jre-headless
+        state: present
+        update_cache: yes
+
+
+# Install and Configure elasticsearch
+
+    - name: Download && Installation of elasticsearch
+      ansible.builtin.apt:
+        deb: "{{ elasticsearch }}"
+    
+    - name: Configure elasticsearch.yml --> network.host
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: '^#?network.host'
+        line: 'network.host: 0.0.0.0'
+
+    - name: Configure elasticsearch.yml --> http.port
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: '^#?http.port: 9200'
+        line: 'http.port: 9200'
+    
+    - name: Configure elasticsearch.yml --> Replace true → false for xpack settings
+      ansible.builtin.lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: '^{{ item }}'
+        line: '{{ item }}: false'
+      loop:
+        - xpack.security.enabled
+        - xpack.security.enrollment.enabled
+    
+    - name: Configure elasticsearch.yml --> enabled true to false
+      ansible.builtin.replace:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: '^\s*enabled:\s*true'
+        replace: '  enabled: false'
+  
+    # - name: Configure Elasticsearch using blockinfile
+    #   ansible.builtin.blockinfile:
+    #     path: /etc/elasticsearch/elasticsearch.yml
+    #     marker: "# {mark} ELK CONFIG true to flase"
+    #     block: |
+    #       network.host: 0.0.0.0
+    #       http.port: 9200
+    #       xpack.security.enabled: false
+    #       xpack.security.enrollment.enabled: false
+    #       enabled: false
+
+#  kibana
+
+    - name: Download && Installation of kibana
+      ansible.builtin.apt:
+        deb: "{{ kibana }}"
+    
+    - name: Upadate system using apt
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Configure kibana.yml --> server ports
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: '^#?server.port: 5601'
+        line: 'server.port: 5601'
+
+    - name: Configure kibana.yml --> server host
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: '^#?server.host: "localhost"'
+        line: 'server.host: "0.0.0.0"'
+
+    - name: Configure kibana.yml --> elasticsearch hosts
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: '^#?elasticsearch\.hosts: \["http://localhost:9200"\]'
+        line: 'elasticsearch.hosts: ["http://localhost:9200"]'
+
+    - name: Set Kibana Elasticsearch credentials
+      ansible.builtin.lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: '^#?{{ item.key }}'
+        line: '{{ item.value }}'
+      loop:
+        - { key: 'elasticsearch.username:', value: 'elasticsearch.username: "{{ kibana_user }}"' }
+        - { key: 'elasticsearch.password:', value: 'elasticsearch.password: "{{ kibana_pass }}"' }
+
+
+    - name: Download && Install logstash
+      ansible.builtin.apt:
+        deb: "{{ logstash }}"
+    
+    - name: Update logstash using apt
+      ansible.builtin.apt:
+        update_cache: yes
+    
+    - name: Configure logstash confid.d/ -->  Create 10-beats-input.conf
+      ansible.builtin.copy:
+        dest: /etc/logstash/conf.d/10-beats-input.conf
+        content: |
+          input {
+            beats { port => 5044 }
+          }
+          output {
+            elasticsearch {
+              hosts => ["http://localhost:9200"]
+              user => "{{ elastic_user }}"
+              password => "{{ elastic_pass }}"
+            }
+          }
+        owner: root
+        group: root
+        mode: '0644'       
+
+    - name: Enable and start Elasticsearch
+      ansible.builtin.service:
+        name: elasticsearch
+        enabled: yes
+        state: started
+
+    - name: Enable and start Kibana
+      ansible.builtin.service:
+        name: kibana
+        enabled: yes
+        state: started
+
+    - name: Enable and start logstash
+      ansible.builtin.service:
+        name: logstash
+        enabled: yes
+        state: started

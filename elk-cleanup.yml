@@ -1,0 +1,110 @@
+---
+- name: Remove ELK Stack completely from Ubuntu
+  hosts: all
+  become: yes
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+
+    - name: Stop Elasticsearch
+      ansible.builtin.service:
+        name: elasticsearch
+        state: stopped
+      ignore_errors: yes
+
+    - name: Stop Kibana
+      ansible.builtin.service:
+        name: kibana
+        state: stopped
+      ignore_errors: yes
+
+    - name: Stop Logstash
+      ansible.builtin.service:
+        name: logstash
+        state: stopped
+      ignore_errors: yes
+
+
+    - name: Disable Elasticsearch
+      ansible.builtin.service:
+        name: elasticsearch
+        enabled: no
+      ignore_errors: yes
+
+    - name: Disable Kibana
+      ansible.builtin.service:
+        name: kibana
+        enabled: no
+      ignore_errors: yes
+
+    - name: Disable Logstash
+      ansible.builtin.service:
+        name: logstash
+        enabled: no
+      ignore_errors: yes
+
+
+    - name: Remove Elasticsearch package
+      ansible.builtin.apt:
+        name: elasticsearch
+        state: absent
+        purge: yes
+
+    - name: Remove Kibana package
+      ansible.builtin.apt:
+        name: kibana
+        state: absent
+        purge: yes
+
+    - name: Remove Logstash package
+      ansible.builtin.apt:
+        name: logstash
+        state: absent
+        purge: yes
+
+
+    - name: Remove unused dependencies
+      ansible.builtin.apt:
+        autoremove: yes
+        purge: yes
+
+
+    # Delete leftover directories
+
+    - name: Remove Elasticsearch directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/elasticsearch
+        - /var/lib/elasticsearch
+        - /var/log/elasticsearch
+
+    - name: Remove Kibana directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kibana
+        - /var/lib/kibana
+        - /var/log/kibana
+
+    - name: Remove Logstash directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/logstash
+        - /var/lib/logstash
+        - /var/log/logstash
+
+    # Optional: Remove Java (only if installed for ELK)
+
+    - name: Remove Java (OpenJDK 21)
+      ansible.builtin.apt:
+        name: openjdk-21-jre-headless
+        state: absent
+        purge: yes
+      ignore_errors: yes
