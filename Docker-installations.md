@@ -12,8 +12,6 @@ Instructions for installing Docker Engine on **Ubuntu**, **Debian**, **Kali Linu
 - [Debian](#debian)
 - [Kali Linux](#kali-linux)
 - [CentOS](#centos)
-- [Post-Install (All Distros)](#post-install-all-distros)
-- [Verify Installation](#verify-installation)
 - [Uninstall](#uninstall)
 
 ---
@@ -47,6 +45,28 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
+### 4. Start and enable the Docker service
+```bash
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+### 5. Run Docker without `sudo`
+```bash
+sudo groupadd docker          # skip if the group already exists
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 6. Verify Installation
+```bash
+docker --version
+docker compose version
+sudo docker run hello-world
+```
+
+You should see a message confirming that Docker is installed and working correctly.
+
 ---
 
 ## Debian
@@ -77,6 +97,28 @@ sudo apt-get update
 ```bash
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
+
+### 4. Start and enable the Docker service
+```bash
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+### 5. Run Docker without `sudo`
+```bash
+sudo groupadd docker          # skip if the group already exists
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 6. Verify Installation
+```bash
+docker --version
+docker compose version
+sudo docker run hello-world
+```
+
+You should see a message confirming that Docker is installed and working correctly.
 
 ---
 
@@ -116,6 +158,28 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 
 > If `apt-get update` errors on the Docker repo, ensure Kali is up to date first (`sudo apt-get update && sudo apt-get dist-upgrade`) and confirm your architecture with `dpkg --print-architecture`.
 
+### 5. Start and enable the Docker service
+```bash
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+### 6. Run Docker without `sudo`
+```bash
+sudo groupadd docker          # skip if the group already exists
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 7. Verify Installation
+```bash
+docker --version
+docker compose version
+sudo docker run hello-world
+```
+
+You should see a message confirming that Docker is installed and working correctly.
+
 ---
 
 ## CentOS
@@ -142,35 +206,6 @@ sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo systemctl start docker
 sudo systemctl enable docker
 ```
-
----
-
-## Post-Install (All Distros)
-
-### Start and enable the Docker service (Ubuntu/Debian/Kali)
-```bash
-sudo systemctl start docker
-sudo systemctl enable docker
-```
-
-### Run Docker without `sudo`
-```bash
-sudo groupadd docker          # skip if the group already exists
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
----
-
-## Verify Installation
-
-```bash
-docker --version
-docker compose version
-sudo docker run hello-world
-```
-
-You should see a message confirming that Docker is installed and working correctly.
 
 ---
 
