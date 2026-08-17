@@ -62,7 +62,6 @@ newgrp docker
 ```bash
 docker --version
 docker compose version
-sudo docker run hello-world
 ```
 
 You should see a message confirming that Docker is installed and working correctly.
@@ -97,7 +96,6 @@ newgrp docker
 
 docker --version
 docker compose version
-sudo docker run hello-world
 ```
 
 ---
@@ -148,7 +146,6 @@ newgrp docker
 ```bash
 docker --version
 docker compose version
-sudo docker run hello-world
 ```
 
 You should see a message confirming that Docker is installed and working correctly.
@@ -208,7 +205,6 @@ newgrp docker
 ```bash
 docker --version
 docker compose version
-sudo docker run hello-world
 ```
 
 You should see a message confirming that Docker is installed and working correctly.
