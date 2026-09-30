@@ -1,0 +1,19 @@
+local.file_match "nginx_access_logs" {
+  path_targets = [{
+    "__path__" = "/var/log/nginx/*.log",
+    "job"      = "nginx",
+    "host"     = "us18",
+  }]
+}
+
+loki.source.file "nginx_access_scrape" {
+  targets    = local.file_match.nginx_access_logs.targets
+  forward_to = [loki.write.loki_write_nginx.receiver]
+}
+
+loki.write "loki_write_nginx" {
+  endpoint {
+    // Enter Endpoint SERVER_IP
+    url = "http://US24_SERVER_IP:3100/loki/api/v1/push"
+  }
+}

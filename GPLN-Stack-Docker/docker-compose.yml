@@ -1,0 +1,78 @@
+services:
+
+  lprometheus:
+    image: prom/prometheus
+    container_name: local_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-data/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'
+    restart: always
+    networks:
+      - atul-net
+
+  lnode_exporter:
+    image: prom/node-exporter:latest
+    container_name: local_node_exporter
+    ports:
+      - "9100:9100"
+    depends_on:
+      - lprometheus
+    restart: always
+    networks:
+      - atul-net
+
+  lgrafana:
+    image: grafana/grafana
+    container_name: local_grafana   
+    ports:
+      - "3000:3000"  
+    depends_on:
+      - lprometheus
+      - lloki
+    restart: always
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana_config/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana_config/provisioning/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - atul-net
+
+  lloki:
+    image: grafana/loki:2.9.2
+    container_name: local_loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./loki-config/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/loki
+    restart: always
+    networks:
+      - atul-net
+
+  lalloy:
+      image: grafana/alloy:v1.0.0
+      container_name: local_alloy
+      ports:
+        - "12345:12345"
+      volumes:
+        - ./agents/alloy:/etc/alloy
+        - /var/log:/var/log:ro
+      command: run --storage.path=/var/lib/alloy/data /etc/alloy
+      restart: always
+      networks:
+        - atul-net
+
+networks:
+  atul-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:

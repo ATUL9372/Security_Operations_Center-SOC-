@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter_local'
+    static_configs:
+      - targets: ['local_node_exporter:9100']
+
+  - job_name: 'node_exporter_us18'
+    static_configs:
+      - targets: ['us18:9100']
